@@ -44,17 +44,17 @@ static void* xmm_tester(void* args) {
 
 	/* see https://crispybyte.wordpress.com/2013/05/24/simd-gcc-intrinsics/ */
 	__m128i f = _mm_set1_epi32(targ->start_value);
+	__m128i f1 = _mm_set1_epi32(1);
 	int i = targ->start_value;
 
 	printf("Starting thread %i\n", targ->thread_no);
 
 	for(int c = 0, n = INT_MAX - i; c < n; c++) {
 
-		f++;
 		i++;
-
+		f = _mm_add_epi32(f, f1);
 		if(i != ((__v4si)f)[0]) {
-			printf("Thread %i: Invalid state integer = %i, float = %f\n", targ->thread_no, i, ((__v4si)f)[0]);
+			printf("Thread %i: Invalid state integer = %i, xmm int = %i\n", targ->thread_no, i, ((__v4si)f)[0]);
 		}
 
 		// do a syscall

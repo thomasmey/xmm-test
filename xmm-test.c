@@ -7,10 +7,12 @@
 #define _GNU_SOURCE
 #include <unistd.h>
 #include <sys/syscall.h> 
+#include <sys/types.h>
+#include <sys/wait.h>
 
 static void* xmm_tester(void* args);
 
-#define NO_THREADS 2
+#define NO_THREADS 4
 
 struct thread_arg {
 	int thread_no;
@@ -19,20 +21,32 @@ struct thread_arg {
 
 void main(void) {
 
-	pthread_t threads[NO_THREADS];
 	struct thread_arg targs[NO_THREADS];
+
+	pthread_t threads[NO_THREADS];
+	pid_t forks[NO_THREADS];
 
 	printf("Starting\n");
 	int start_value = random();
 	start_value = 0;
+
 	for(int i = 0, n = NO_THREADS; i < n; i++) {
-		targs[i].thread_no = i;
-		targs[i].start_value = start_value + i; 
-		pthread_create(&threads[i], NULL, xmm_tester, &targs[i]);
+		pid_t rc = fork();
+
+		if(rc > 0) {
+			forks[i] = rc;
+		} else if(rc == 0) {
+			targs[i].thread_no = i;
+			targs[i].start_value = start_value + i; 
+			//pthread_create(&threads[i], NULL, xmm_tester, &targs[i]);
+			xmm_tester(&targs[i]);
+			return;
+		}
 	}
 
 	for(int i = 0, n = NO_THREADS; i < n; i++) {
-		pthread_join(threads[i], NULL);
+		wait(NULL);
+//		pthread_join(threads[i], NULL);
 	}
 
 	printf("Ended\n");

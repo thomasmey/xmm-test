@@ -9,10 +9,11 @@
 #include <sys/syscall.h> 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <kcapi.h>
 
 static void* xmm_tester(void* args);
 
-#define NO_THREADS 4
+#define NO_THREADS 8
 
 struct thread_arg {
 	int thread_no;
@@ -54,6 +55,10 @@ void main(void) {
 
 static void* xmm_tester(void* args) {
 
+	const char pwd[] = "Password!";
+	const char salt[] = "SaltySalt!";
+	char key[20];
+
 	struct thread_arg * targ = (struct thread_arg*)args;
 
 	/* see https://crispybyte.wordpress.com/2013/05/24/simd-gcc-intrinsics/ */
@@ -74,7 +79,9 @@ static void* xmm_tester(void* args) {
 		// do a syscall
 		if(c % 10000 == 0) {
 			//printf("Thread %i: syscall for %i\n", targ->thread_no, c);
-			syscall(SYS_sync);
+			kcapi_pbkdf("hmac(sha1)", pwd, sizeof(pwd), salt, sizeof(salt), 1, key, 20);
+
+			//syscall(SYS_sync);
 		}
 	}
 	printf("Ended thread %i\n", targ->thread_no);

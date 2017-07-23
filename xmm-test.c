@@ -67,8 +67,9 @@ static void* xmm_tester(void* args) {
 	int i = targ->start_value;
 
 	printf("Starting thread %i\n", targ->thread_no);
+	//kcapi_set_verbosity(LOG_DEBUG);
 
-	for(int c = 0, n = INT_MAX - i; c < n; c++) {
+	for(int c = 0, /*n = i + 10 */ n = INT_MAX - i ; c < n; c++) {
 
 		i++;
 		f = _mm_add_epi32(f, f1);
